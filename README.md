@@ -31,7 +31,7 @@ In conventional vehicles, all kinetic energy is wasted as heat during braking. E
 ---
 
 
-## 🧱 System Architecture
+##  System Architecture
 
 ```text
 ┌──────────────┐
@@ -61,7 +61,7 @@ In conventional vehicles, all kinetic energy is wasted as heat during braking. E
 ```
 ---
 
-## 📂 Project Structure
+##  Project Structure
 
 ```text
 ev-charger-pms/
