@@ -29,53 +29,77 @@ In conventional vehicles, all kinetic energy is wasted as heat during braking. E
 | Training samples | 27,615 |
 
 ---
+## System Architecture
 
+```mermaid
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "fontSize": "20px"
+  },
+  "flowchart": {
+    "nodeSpacing": 120,
+    "rankSpacing": 100,
+    "curve": "basis"
+  }
+}}%%
 
-##  System Architecture
+flowchart LR
 
-```text
-┌──────────────┐
-│ EV Simulator │
-└──────┬───────┘
-       │ Telemetry Data
-       ▼
-┌──────────────┐
-│ FastAPI API  │
-└──────┬───────┘
-       │
-       ▼
-┌────────────────────┐
-│ ML Inference Engine│
-│ (Isolation Forest) │
-└──────┬─────────────┘
-       │
-       ▼
-┌──────────────┐
-│ PostgreSQL DB│
-└──────┬───────┘
-       │
-       ▼
-┌──────────────┐
-│ Streamlit UI │
-└──────────────┘
+A["Drive Cycle"]
+--> B["Motor Gen"]
+
+B --> C["DC-DC Conv"]
+
+C --> D{"Power Split"}
+
+D --> E["Battery"]
+
+D --> F["Supercap"]
+
+E --> G["ML Agent"]
+
+F --> G
+
+G --> D
+
+style A fill:#065A82,color:#ffffff,stroke:#ffffff,stroke-width:2px
+style B fill:#065A82,color:#ffffff,stroke:#ffffff,stroke-width:2px
+style C fill:#065A82,color:#ffffff,stroke:#ffffff,stroke-width:2px
+
+style D fill:#1C7293,color:#ffffff,stroke:#ffffff,stroke-width:2px
+
+style E fill:#0F6E56,color:#ffffff,stroke:#ffffff,stroke-width:2px
+style F fill:#534AB7,color:#ffffff,stroke:#ffffff,stroke-width:2px
+
+style G fill:#BA7517,color:#ffffff,stroke:#ffffff,stroke-width:2px
 ```
 ---
 
-##  Project Structure
+## Component Details
 
-```text
-ev-charger-pms/
-│
-├── api/                # FastAPI backend
-├── simulator/          # Charger simulation + fault injection
-├── ml/                 # ML training + inference
-├── dashboard/          # Streamlit dashboard
-├── data/synthetic/     # Generated datasets
-├── tests/              # Test modules
-├── requirements.txt
-└── README.md
-```
+| Component | Description |
+|---|---|
+| Drive Cycle | Generates vehicle driving conditions |
+| Motor Generator | Simulates regenerative braking |
+| DC-DC Converter | Controls energy conversion |
+| Power Split | Distributes recovered energy |
+| Battery Model | Thevenin battery model |
+| Supercap Model | RC supercapacitor model |
+| ML Agent | Random Forest optimization agent |
 
+
+## Project Structure
+
+| File | Description |
+|---|---|
+| `storage_model.py` | Battery (Thevenin) + Supercapacitor (RC) models with SoC tracking |
+| `drive_cycle.py` | Vehicle dynamics + synthetic drive cycle generator |
+| `train_agent.py` | Dataset generation + Random Forest ML training pipeline |
+| `simulate.py` | Full closed-loop simulation + 6-panel results dashboard |
+| `cosim_controller.py` | Python to Simulink bridge via MATLAB Engine API |
+| `regen_model.slx` | MATLAB Simulink power electronics model |
+| `requirements.txt` | Python dependencies |
 
 ---
 
