@@ -30,79 +30,51 @@ In conventional vehicles, all kinetic energy is wasted as heat during braking. E
 
 ---
 
-## System Architecture
-┌─────────────────────────────────────────────────────────────────┐
-│                        SIMULINK MODEL                           │
-│                                                                 │
-│  ┌─────────────┐    ┌───────────────┐    ┌──────────────────┐  │
-│  │ Drive Cycle │───▶│Motor-Generator│───▶│ DC-DC Converter  │  │
-│  │  v(t), a(t) │    │  (PMDC model) │    │  (Bidirectional) │  │
-│  └─────────────┘    └───────────────┘    └────────┬─────────┘  │
-│                                                    │            │
-│                                          ┌─────────┴────────┐  │
-│                                          │   Power Split    │  │
-│                                          │  split_ratio     │  │
-│                                          └────┬──────┬──────┘  │
-│                                               │      │         │
-│                                    ┌──────────▼─┐  ┌─▼──────┐  │
-│                                    │  Battery   │  │Supercap │  │
-│                                    │ (Thevenin) │  │  (RC)   │  │
-│                                    └──────┬─────┘  └────┬────┘  │
-└───────────────────────────────────────────│─────────────│───────┘
-                                            │   SoC data  │
-                                            └──────┬───────┘
-                                                   │
-                              ┌────────────────────▼──────────────┐
-                              │        PYTHON ML AGENT            │
-                              │                                   │
-                              │  Inputs: SoC_bat, SoC_sc,        │
-                              │          jerk, power, velocity    │
-                              │                                   │
-                              │  Model:  Random Forest (200 trees)│
-                              │                                   │
-                              │  Output: split_ratio              │
-                              │          0.10 / 0.50 / 0.80      │
-                              └───────────────────────────────────┘
 
+## 🧱 System Architecture
+
+```text
+┌──────────────┐
+│ EV Simulator │
+└──────┬───────┘
+       │ Telemetry Data
+       ▼
+┌──────────────┐
+│ FastAPI API  │
+└──────┬───────┘
+       │
+       ▼
+┌────────────────────┐
+│ ML Inference Engine│
+│ (Isolation Forest) │
+└──────┬─────────────┘
+       │
+       ▼
+┌──────────────┐
+│ PostgreSQL DB│
+└──────┬───────┘
+       │
+       ▼
+┌──────────────┐
+│ Streamlit UI │
+└──────────────┘
+```
 ---
 
-## Project Structure
-regen-braking-hess/
+## 📂 Project Structure
+
+```text
+ev-charger-pms/
 │
-├── 📄 storage_model.py        # Core physics models
-│   ├── BatteryModel           #   → Thevenin equivalent circuit
-│   ├── SupercapacitorModel    #   → RC equivalent circuit  
-│   └── HybridStorageSystem    #   → Power split with overflow logic
-│
-├── 📄 drive_cycle.py          # Vehicle simulation
-│   ├── VehicleDynamics        #   → Braking power computation
-│   └── DriveCycleGenerator    #   → Urban / suburban / highway cycles
-│
-├── 📄 train_agent.py          # Machine learning pipeline
-│   ├── generate_dataset()     #   → 27,615 labelled samples
-│   ├── optimal_split_class()  #   → Physics-based oracle labeller
-│   ├── train_model()          #   → Random Forest, cross-validation
-│   └── predict_split()        #   → Real-time inference interface
-│
-├── 📄 simulate.py             # Main simulation runner
-│   ├── run_simulation()       #   → Closed-loop ML agent run
-│   ├── threshold_split()      #   → Baseline comparison
-│   └── plot_results()         #   → 6-panel results dashboard
-│
-├── 📄 cosim_controller.py     # Python ↔ Simulink bridge
-│   ├── run_cosimulation()     #   → MATLAB Engine API loop
-│   └── run_python_fallback()  #   → Pure Python fallback
-│
-├── 📊 regen_model.slx         # MATLAB Simulink model
-│   ├── Drive_Cycle            #   → Speed + acceleration signals
-│   ├── Braking_Power          #   → Regen power computation
-│   ├── Split_Ratio            #   → Power distribution logic
-│   ├── Battery_SoC            #   → Integrator + saturation
-│   └── Supercap_SoC           #   → Voltage → SoC conversion
-│
-├── 📄 requirements.txt        # Python dependencies
-├── 📄 LICENSE                 # MIT License
-└── 📄 README.md               # This file
+├── api/                # FastAPI backend
+├── simulator/          # Charger simulation + fault injection
+├── ml/                 # ML training + inference
+├── dashboard/          # Streamlit dashboard
+├── data/synthetic/     # Generated datasets
+├── tests/              # Test modules
+├── requirements.txt
+└── README.md
+```
 
 
 ---
